@@ -1,0 +1,28 @@
+import json
+from pathlib import Path
+
+def guardar_jsonl(path: Path, objetos) -> int:
+    try:
+        with path.open("w", encoding="utf-8") as f:
+            for obj in objetos:
+                f.write(json.dumps(obj.to_dict(), ensure_ascii=False) + "\n")
+        return len(objetos)
+    except OSError as e:
+        raise OSError(f"Error escribiendo JSONL: {e}")
+
+def cargar_jsonl(path: Path, cls):
+    resultados = []
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            for linea in f:
+                try:
+                    datos = json.loads(linea)
+                    obj = cls(datos["nombre"], datos["email"], datos["telefono"])
+                    resultados.append(obj)
+                except (json.JSONDecodeError, KeyError, ValueError):
+                    pass
+    except FileNotFoundError:
+        raise FileNotFoundError(f"No existe el archivo JSONL: {path}")
+    except OSError as e:
+        raise OSError(f"Error leyendo JSONL: {e}")
+    return resultados
